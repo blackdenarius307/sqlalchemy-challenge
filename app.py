@@ -33,14 +33,13 @@ app=Flask(__name__)
 
 @app.route("/")
 def index():
-    """List the Routes"""
     return (
-        f"Welcome to my homework. There are a few routes you can take here!"
-        f"Precipitation: /api/v1.0/precipitation"
-        f"Stations: /api/v1.0/stations"
-        f"Temperature: /api/v1.0/tobs"
-        f"Starting Point Data: /api/v1.0/<start>"
-        f"A Range of Dates: /api/v1.0/<start>/<end>"
+        """Welcome to my homework. There are a few routes you can take here!<br>
+        Precipitation: /api/v1.0/precipitation<br>
+        Stations: /api/v1.0/stations<br>
+        Temperature: /api/v1.0/tobs<br>
+        Starting Point Data: /api/v1.0/start date Format Start Date as YYYY-MM-DD<br> 
+        A Range of Dates: /api/v1.0/start date/end date Format Start and End Date as YYYY-MM-DD"""
     )
 
 @app.route("/api/v1.0/precipitation")
@@ -115,10 +114,29 @@ def temperature():
     return jsonify(All_temps)
 
 
+@app.route("/api/v1.0/<start>")
+def temp_by_start(start):
+    #Create the Session
+    session = Session(engine)
 
+    lowesttemp = session.query(func.min(Measurements.tobs)).\
+        filter(Measurements.date >= f'{start}').all()[0][0]
+    highesttemp = session.query(func.max(Measurements.tobs)).\
+        filter(Measurements.date >= f'{start}').all()[0][0]
+    avgtemp = session.query(func.avg(Measurements.tobs)).\
+        filter(Measurements.date >= f'{start}').all()[0][0]
+    
+    session.close()
 
-#@app.route("/api/v1.0/<start>")
-#def start()
+    #Convert
+    Allsummary = []
+    Start_dict = {}
+    Start_dict['Minimum'] = lowesttemp
+    Start_dict['Maximum'] = highesttemp
+    Start_dict['Average'] = avgtemp
+    Allsummary.append(Start_dict)
+
+    return jsonify(Allsummary)
 
 #@app.route("/api/v1.0/<start>/<end>")
 #def range()
