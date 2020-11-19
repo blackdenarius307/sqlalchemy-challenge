@@ -119,6 +119,7 @@ def temp_by_start(start):
     #Create the Session
     session = Session(engine)
 
+    #Filtering Queries
     lowesttemp = session.query(func.min(Measurements.tobs)).\
         filter(Measurements.date >= f'{start}').all()[0][0]
     highesttemp = session.query(func.max(Measurements.tobs)).\
@@ -138,8 +139,33 @@ def temp_by_start(start):
 
     return jsonify(Allsummary)
 
-#@app.route("/api/v1.0/<start>/<end>")
-#def range()
+@app.route("/api/v1.0/<start>/<end>")
+def range_between_dates(start, end):
+    #Create the Session
+    session = Session(engine)
+
+    #Filtering Queries
+    lowesttemp = session.query(func.min(Measurements.tobs)).\
+        filter(Measurements.date >= f'{start}').\
+        filter(Measurements.date <= f'{end}').all()[0][0]
+    highesttemp = session.query(func.max(Measurements.tobs)).\
+        filter(Measurements.date >= f'{start}').\
+        filter(Measurements.date <= f'{end}').all()[0][0]
+    avgtemp = session.query(func.avg(Measurements.tobs)).\
+        filter(Measurements.date >= f'{start}').\
+        filter(Measurements.date <= f'{end}').all()[0][0]
+
+    session.close()
+
+    #Convert
+    Rangesummary = []
+    Range_dict = {}
+    Range_dict['Minimum'] = lowesttemp
+    Range_dict['Maximum'] = highesttemp
+    Range_dict['Average'] = avgtemp
+    Rangesummary.append(Range_dict)
+
+    return jsonify(Rangesummary)
 
 if __name__ == "__main__":
     app.run(debug=True)
